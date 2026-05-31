@@ -1,31 +1,53 @@
+import 'package:intl/intl.dart';
+
+enum TodoStatus { pending, done }
+
 class Todo {
   final int _id;
   final String _title;
-  late String _status;
-  late String _createdAt;
+  TodoStatus _status;
+  final String _createdAt;
 
   Todo({
     required this._id,
     required this._title,
-    String? status,
+    TodoStatus? status,
     String? createdAt,
-  }) {
-    _status = status ?? "Pending";
-    _createdAt = createdAt ?? DateTime.now().toIso8601String();
+  }) : _status = status ?? TodoStatus.pending,
+       _createdAt =
+           createdAt ?? DateFormat("dd-MM-yyyy").format(DateTime.now());
+
+  static Todo fromJSON(Map<String, dynamic> data) {
+    final status = TodoStatus.values.byName(data['status']);
+
+    return Todo(
+      id: data['id'],
+      title: data['title'],
+      status: status,
+      createdAt: data['createdAt'],
+    );
   }
 
-  dynamic toJSON() {
+  Map<String, dynamic> toJSON() {
     return {
       "id": _id,
       "title": _title,
-      "status": _status,
+      "status": _status.name,
       "createdAt": _createdAt,
     };
   }
 
   void done() {
-    _status = "PRONTO";
+    _status = TodoStatus.done;
   }
 
   int get id => _id;
+
+  TodoStatus get status => _status;
+
+  void log() {
+    print(
+      "[@ID]:$_id  [@TITLE]:$_title [@STATUS]:${_status.name} [@DATE]:$_createdAt",
+    );
+  }
 }
