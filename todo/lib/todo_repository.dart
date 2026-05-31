@@ -54,7 +54,7 @@ class TodoRepository {
 
   void add(String title) async {
     _lastIdCreated += 1;
-    _repository.add(Todo(id: _lastIdCreated, title: title));
+    _repository.add(Todo(id: _lastIdCreated, title: title.trim()));
     _save();
   }
 
