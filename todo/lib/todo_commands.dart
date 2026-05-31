@@ -1,28 +1,39 @@
-void runCommand(List<String> args) {
+import 'package:todo/todo_repository.dart';
+
+void runCommand(List<String> args, TodoRepository repository) {
   final String firstCommand = args.first;
   final List<String> secondArgument = args.sublist(1);
 
   switch (firstCommand) {
     case "add":
-      if (secondArgument.isEmpty) {
+      //ADD REQUIRED ""
+      if (secondArgument.isEmpty || args.length > 2) {
+        print("ïnvalid arguments");
         return;
       }
-      print("add case");
+      repository.add(secondArgument.single);
+      return;
     case "list":
       if (secondArgument.isNotEmpty) {
+        print("ïnvalid arguments");
         return;
       }
-      print("list case");
+      repository.read();
+      return;
     case "done":
-      if (secondArgument.isEmpty) {
+      if (secondArgument.isEmpty || args.length > 2) {
+        print("ïnvalid arguments");
         return;
       }
-      print("done case");
+      //NEED ERROR CASE no number
+      repository.done(int.parse(secondArgument.single));
     case "delete":
-      if (secondArgument.isEmpty) {
+      if (secondArgument.isEmpty || args.length > 2) {
+        print("ïnvalid arguments");
         return;
       }
-      print("delete case");
+      //NEED ERROR CASE no number
+      repository.delete(int.parse(secondArgument.single));
     default:
       print("Uso: todo <comando> [argumentos]");
   }
