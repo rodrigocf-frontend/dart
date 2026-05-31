@@ -1,5 +1,11 @@
-import 'package:todo/todo.dart' as todo;
+import 'package:todo/todo_commands.dart';
 
 void main(List<String> arguments) {
-  print('Hello world: ${todo.calculate()}!');
+  if (arguments.isEmpty) {
+    print("Uso: todo <comando> [argumentos]");
+  }
+
+  if (arguments.isNotEmpty) {
+    runCommand(arguments);
+  }
 }
