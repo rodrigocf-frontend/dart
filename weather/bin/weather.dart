@@ -1,4 +1,4 @@
-import 'package:http/http.dart' as http;
+import 'package:weather/cli/weather_cli.dart';
 
 Future<void> main(List<String> arguments) async {
   //GET TEMPERATURE
@@ -16,4 +16,8 @@ Future<void> main(List<String> arguments) async {
   // });
   // var response = await http.get(url);
   // print(response.body);
+
+  final WeatherCli cli = WeatherCli();
+
+  cli.run(arguments);
 }
