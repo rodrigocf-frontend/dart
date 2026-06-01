@@ -8,8 +8,8 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  path: ^1.9.0
   intl: ^0.18.1
+  args: ^2.7.0
 
 dev_dependencies:
   lints: ^6.0.0
