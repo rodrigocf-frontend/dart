@@ -1,6 +1,6 @@
 # Todo CLI
 
-Gerenciador de tarefas por linha de comando escrito em Dart. As tarefas são persistidas localmente em um arquivo JSON.
+Gerenciador de tarefas por linha de comando escrito em Dart. As tarefas são persistidas localmente em um arquivo JSON criado automaticamente na primeira execução.
 
 ## Requisitos
 
@@ -26,7 +26,7 @@ todo <comando> [argumentos]
 | `add <título>` | Adiciona uma nova tarefa | `todo add comprar pão` |
 | `list` | Lista todas as tarefas | `todo list` |
 | `done <id>` | Marca uma tarefa como concluída | `todo done 1` |
-| `delete <id>` | Remove uma tarefa | `todo delete 1` |
+| `remove <id>` | Remove uma tarefa | `todo remove 1` |
 
 ### Exemplos
 
@@ -42,24 +42,36 @@ todo list
 todo done 1
 
 # Remover
-todo delete 2
+todo remove 2
 ```
 
 ## Estrutura do projeto
 
 ```
 bin/
-  todo.dart            # Entry point
+  todo.dart                  # Entry point
 lib/
-  todo_model.dart      # Entidade Todo e enum TodoStatus
-  todo_repository.dart # Persistência em JSON
-  todo_cli_model.dart  # Orquestração de comandos
-  command_model.dart   # Abstração de Command
-store/
-  data.json            # Arquivo de dados local
+  commands/
+    add_command.dart          # Comando add
+    list_command.dart         # Comando list
+    done_command.dart         # Comando done
+    remove_command.dart       # Comando remove
+  models/
+    todo_model.dart           # Entidade Todo e enum TodoStatus
+    todo_cli.dart             # CommandRunner principal
+  repository/
+    todo_repository.dart      # Persistência em JSON
+  service/
+    todo_service.dart         # Regras de negócio
+test/
+  todo_model_test.dart        # Testes da entidade Todo
+  todo_service_test.dart      # Testes do serviço
+  todo_repository_test.dart   # Testes do repositório
 ```
 
 ## Estrutura do `data.json`
+
+O arquivo é criado automaticamente em `store/data.json` na primeira execução.
 
 ```json
 {
@@ -68,7 +80,7 @@ store/
       "id": 1,
       "title": "comprar pão",
       "status": "pending",
-      "createdAt": "31-05-2026"
+      "createdAt": "01-06-2026"
     }
   ],
   "lastIdCreated": 1
