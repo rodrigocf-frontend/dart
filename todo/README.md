@@ -1,84 +1,84 @@
 # Todo CLI
 
-Gerenciador de tarefas por linha de comando escrito em Dart. As tarefas são persistidas localmente em um arquivo JSON criado automaticamente na primeira execução.
+A command-line task manager written in Dart. Tasks are persisted locally in a JSON file created automatically on first run.
 
-## Requisitos
+## Requirements
 
 - Dart SDK `^3.12.1`
 
-## Instalação
+## Installation
 
 ```bash
 dart pub get
 dart compile exe bin/todo.dart -o todo
 ```
 
-## Uso
+## Usage
 
 ```
-todo <comando> [argumentos]
+todo <command> [arguments]
 ```
 
-### Comandos
+### Commands
 
-| Comando | Descrição | Exemplo |
+| Command | Description | Example |
 |---|---|---|
-| `add <título>` | Adiciona uma nova tarefa | `todo add comprar pão` |
-| `list` | Lista todas as tarefas | `todo list` |
-| `done <id>` | Marca uma tarefa como concluída | `todo done 1` |
-| `remove <id>` | Remove uma tarefa | `todo remove 1` |
+| `add <title>` | Add a new task | `todo add buy groceries` |
+| `list` | List all tasks | `todo list` |
+| `done <id>` | Mark a task as done | `todo done 1` |
+| `remove <id>` | Remove a task | `todo remove 1` |
 
-### Exemplos
+### Examples
 
 ```bash
-# Adicionar tarefas
-todo add comprar pão
-todo add estudar Dart
+# Add tasks
+todo add buy groceries
+todo add study Dart
 
-# Listar tarefas
+# List tasks
 todo list
 
-# Marcar como concluída
+# Mark as done
 todo done 1
 
-# Remover
+# Remove
 todo remove 2
 ```
 
-## Estrutura do projeto
+## Project Structure
 
 ```
 bin/
   todo.dart                  # Entry point
 lib/
   commands/
-    add_command.dart          # Comando add
-    list_command.dart         # Comando list
-    done_command.dart         # Comando done
-    remove_command.dart       # Comando remove
+    add_command.dart          # add command
+    list_command.dart         # list command
+    done_command.dart         # done command
+    remove_command.dart       # remove command
   models/
-    todo_model.dart           # Entidade Todo e enum TodoStatus
-    todo_cli.dart             # CommandRunner principal
+    todo_model.dart           # Todo entity and TodoStatus enum
+    todo_cli.dart             # Main CommandRunner
   repository/
-    todo_repository.dart      # Persistência em JSON
+    todo_repository.dart      # JSON persistence
   service/
-    todo_service.dart         # Regras de negócio
+    todo_service.dart         # Business logic
 test/
-  todo_model_test.dart        # Testes da entidade Todo
-  todo_service_test.dart      # Testes do serviço
-  todo_repository_test.dart   # Testes do repositório
+  todo_model_test.dart        # Todo entity tests
+  todo_service_test.dart      # Service tests
+  todo_repository_test.dart   # Repository tests
 ```
 
-## Estrutura do `data.json`
+## Data File Structure
 
-O arquivo é criado automaticamente em `store/data.json` na primeira execução.
+The file is created automatically at `store/data.json` on first run.
 
 ```json
 {
   "list": [
     {
       "id": 1,
-      "title": "comprar pão",
+      "title": "buy groceries",
       "status": "pending",
       "createdAt": "01-06-2026"
     }
@@ -87,15 +87,15 @@ O arquivo é criado automaticamente em `store/data.json` na primeira execução.
 }
 ```
 
-## Desenvolvimento
+## Development
 
-Para rodar sem compilar:
+Run without compiling:
 
 ```bash
 dart run bin/todo.dart list
 ```
 
-Para rodar os testes:
+Run tests:
 
 ```bash
 dart test
