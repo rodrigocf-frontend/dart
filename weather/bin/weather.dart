@@ -1,5 +1,19 @@
-import 'package:weather/weather.dart' as weather;
+import 'package:http/http.dart' as http;
 
-void main(List<String> arguments) {
-  print('Hello world: ${weather.calculate()}!');
+Future<void> main(List<String> arguments) async {
+  //GET TEMPERATURE
+  // var url = Uri.https('api.open-meteo.com', '/v1/forecast', {
+  //   "latitude": "-7.2306",
+  //   "longitude": "-35.8811",
+  //   "current": "temperature_2m",
+  // });
+  // var response = await http.get(url);
+
+  //GET LatitudeLong
+  // var url = Uri.https('geocoding-api.open-meteo.com', '/v1/search', {
+  //   "name": "Campina Grande",
+  //   "count": "1",
+  // });
+  // var response = await http.get(url);
+  // print(response.body);
 }
