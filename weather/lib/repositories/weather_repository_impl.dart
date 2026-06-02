@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:weather/datasources/local/weather_local_datasource.dart';
 import 'package:weather/datasources/local/weather_local_datasource_impl.dart';
@@ -26,18 +25,15 @@ class WeatherRepositoryImpl implements WeatherRepository {
     })
   >
   getCurrentWeather(String cityName, bool forceRefresh) async {
-    final String path = _getCurrentStorePath(cityName);
-    File file = await _localDatasource.getFile(path);
-
     try {
-      final fileData = await _getFileData(file);
+      final fileData = await _localDatasource.loadCurrentWeatherFile(cityName);
       final location = fileData.location;
       final lastCacheUpdated = fileData.lastCacheUpdated;
       final weather = fileData.weather;
 
       if (DateTime.now().difference(lastCacheUpdated).inHours > 1 ||
           forceRefresh) {
-        final savedUpdate = await _save(file, location);
+        final savedUpdate = await _save(location);
         return (
           location: location,
           weather: savedUpdate.weather,
@@ -53,9 +49,9 @@ class WeatherRepositoryImpl implements WeatherRepository {
         );
       }
     } on PathNotFoundException {
-      CityLocation location = await _fetchLocationFromAPI(cityName);
-      file = await _localDatasource.createStore(path);
-      final savedNew = await _save(file, location);
+      CityLocation location = await _remoteDatasource.getLocation(cityName);
+      await _localDatasource.createCurrentStore(cityName);
+      final savedNew = await _save(location);
 
       return (
         location: location,
@@ -69,67 +65,27 @@ class WeatherRepositoryImpl implements WeatherRepository {
     }
   }
 
-  Future<
-    ({CityLocation location, CityWeather weather, DateTime lastCacheUpdated})
-  >
-  _getFileData(File file) async {
-    final String fileData = await file.readAsString();
-    final fileDataJSON = jsonDecode(fileData);
-
-    final DateTime lastCacheUpdated = DateTime.parse(
-      fileDataJSON['cache_updated'] as String,
-    );
-
-    final CityLocation location = CityLocation.fromJSON(fileDataJSON);
-    final CityWeather weather = CityWeather.fromJSON(fileDataJSON);
-
-    return (
-      lastCacheUpdated: lastCacheUpdated,
-      location: location,
-      weather: weather,
-    );
-  }
-
-  Future<CityWeather> _fetchWeatherFromAPI(CityLocation location) async {
-    var url = Uri.https('api.open-meteo.com', '/v1/forecast', {
-      "latitude": location.latitude,
-      "longitude": location.longitude,
-      "current": "temperature_2m,windspeed_2m,relative_humidity_2m",
-      "wind_speed_unit": "kmh",
-      "timezone": location.timezone,
-    });
-
-    return _remoteDatasource.getWeather(url);
-  }
-
-  Future<CityLocation> _fetchLocationFromAPI(String cityName) async {
-    final Uri url = Uri.https('geocoding-api.open-meteo.com', '/v1/search', {
-      "name": cityName,
-      "count": "1",
-    });
-
-    return _remoteDatasource.getLocation(url);
+  @override
+  Future<List<({DateTime fetchedAt, int id, String name})>> getHistory() async {
+    return _localDatasource.loadHistoryFile();
   }
 
   Future<({CityWeather weather, DateTime lastCacheUpdated})> _save(
-    File file,
     CityLocation location,
   ) async {
-    final CityWeather weather = await _fetchWeatherFromAPI(location);
+    final CityWeather weather = await _remoteDatasource.getWeather(location);
     final lastCacheUpdated = DateTime.now();
 
-    final fileData = jsonEncode({
-      ...location.toJSON(),
-      ...weather.toJSON(),
-      "cache_updated": lastCacheUpdated.toIso8601String(),
-    });
-
-    await _localDatasource.saveCurrentFile(file, fileData);
+    await _localDatasource.findAndUpdateCurrentFile(
+      location,
+      weather,
+      lastCacheUpdated,
+    );
+    await _localDatasource.findAndUpdateHistoryByLocation(
+      location,
+      lastCacheUpdated,
+    );
 
     return (lastCacheUpdated: lastCacheUpdated, weather: weather);
-  }
-
-  String _getCurrentStorePath(String cityName) {
-    return 'store/${cityName.toLowerCase().replaceAll(RegExp(" "), "_")}_current.json';
   }
 }
