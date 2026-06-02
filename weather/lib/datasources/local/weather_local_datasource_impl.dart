@@ -1,20 +1,149 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:weather/datasources/local/weather_local_datasource.dart';
+import 'package:weather/models/location.dart';
+import 'package:weather/models/weather.dart';
 
 class WeatherLocalDatasourceImpl implements WeatherLocalDatasource {
-  Future<File> getFile(String path) async {
+  @override
+  File configPathToFile(String path) {
     final File file = File(path);
     return file;
   }
 
+  @override
   Future<File> createStore(String path) async {
-    final File file = File(path);
+    final File file = configPathToFile(path);
     file.createSync(recursive: true);
     return file;
   }
 
-  Future<void> saveCurrentFile(File file, String fileData) async {
+  @override
+  Future<File> createCurrentStore(String cityName) async {
+    final String path = getCurrentCachePath(cityName);
+    File file = configPathToFile(path);
+    file.createSync(recursive: true);
+    return file;
+  }
+
+  @override
+  Future<void> findAndUpdateCurrentFile(
+    CityLocation location,
+    CityWeather weather,
+    DateTime lastCacheUpdated,
+  ) async {
+    final String path = getCurrentCachePath(location.name);
+    File file = configPathToFile(path);
+
+    final fileData = jsonEncode({
+      ...location.toJSON(),
+      ...weather.toJSON(),
+      "cache_updated": lastCacheUpdated.toIso8601String(),
+    });
+
     await file.writeAsString(fileData);
+  }
+
+  @override
+  Future<
+    ({CityLocation location, CityWeather weather, DateTime lastCacheUpdated})
+  >
+  loadCurrentWeatherFile(String cityName) async {
+    final String path = getCurrentCachePath(cityName);
+    File file = configPathToFile(path);
+
+    final String fileData = await file.readAsString();
+    final fileDataJSON = jsonDecode(fileData);
+
+    final DateTime lastCacheUpdated = DateTime.parse(
+      fileDataJSON['cache_updated'] as String,
+    );
+
+    final CityLocation location = CityLocation.fromJSON(fileDataJSON);
+    final CityWeather weather = CityWeather.fromJSON(fileDataJSON);
+
+    return (
+      lastCacheUpdated: lastCacheUpdated,
+      location: location,
+      weather: weather,
+    );
+  }
+
+  @override
+  Future<List<({DateTime fetchedAt, int id, String name})>>
+  loadHistoryFile() async {
+    try {
+      final String path = getHistoryCachePath();
+      File file = configPathToFile(path);
+      String fileData = await file.readAsString();
+      List<dynamic> fileDataJSON = jsonDecode(fileData);
+      final fileDataCast = fileDataJSON
+          .map(
+            (item) => (
+              fetchedAt: DateTime.parse(item['fetchedAt'] as String),
+              id: item['id'] as int,
+              name: item['name'] as String,
+            ),
+          )
+          .toList();
+      return fileDataCast;
+    } on PathNotFoundException {
+      return [];
+    } catch (e) {
+      print("Unexpected Error");
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> findAndUpdateHistoryByLocation(
+    CityLocation location,
+    DateTime lastCacheUpdated,
+  ) async {
+    final String path = getHistoryCachePath();
+    File file = configPathToFile(path);
+    try {
+      String fileData = await file.readAsString();
+      List<dynamic> fileDataJSON = jsonDecode(fileData);
+      final index = fileDataJSON.indexWhere(
+        (element) => element['id'] == location.id,
+      );
+
+      if (index != -1) {
+        fileDataJSON[index]['fetchedAt'] = lastCacheUpdated.toIso8601String();
+      } else {
+        fileDataJSON.add({
+          "id": location.id,
+          "name": location.name,
+          "fetchedAt": lastCacheUpdated.toIso8601String(),
+        });
+      }
+      final String newFileData = jsonEncode(fileDataJSON);
+      await file.writeAsString(newFileData);
+    } on PathNotFoundException {
+      file = await createStore(path);
+      final fileData = jsonEncode([
+        {
+          "id": location.id,
+          "name": location.name,
+          "fetchedAt": lastCacheUpdated.toIso8601String(),
+        },
+      ]);
+      await file.writeAsString(fileData);
+    } catch (e) {
+      print("Unexpected Error");
+      rethrow;
+    }
+  }
+
+  @override
+  String getCurrentCachePath(String cityName) {
+    return 'store/${cityName.toLowerCase().replaceAll(RegExp(" "), "_")}_current.json';
+  }
+
+  @override
+  String getHistoryCachePath() {
+    return 'store/history.json';
   }
 }
