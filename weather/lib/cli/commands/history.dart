@@ -1,12 +1,18 @@
 import 'dart:async';
 
 import 'package:args/command_runner.dart';
+import 'package:weather/cli/display/display.dart';
+import 'package:weather/repositories/weather_repository.dart';
 
 class HistoryCommand extends Command {
   @override
-  String name = "history";
+  final String name = "history";
   @override
-  String description = "List cities that have already been searched (cache)";
+  final String description =
+      "List cities that have already been searched (cache)";
+  final WeatherRepository _repository;
+
+  HistoryCommand({required this._repository});
 
   @override
   Future<void> run() async {
@@ -14,6 +20,7 @@ class HistoryCommand extends Command {
       print("invalid command");
       return;
     }
-    print("get history");
+    final history = await _repository.getHistory();
+    Display.logHistory(history);
   }
 }

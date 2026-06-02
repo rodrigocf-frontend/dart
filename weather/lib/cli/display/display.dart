@@ -15,6 +15,16 @@ class Display {
     print('Atualizado:   ${_source(fromCache, fetchedAt)}');
   }
 
+  static void logHistory(
+    List<({int id, String name, DateTime fetchedAt})> cities,
+  ) {
+    print('Cidades pesquisadas:');
+    for (final city in cities) {
+      final name = city.name.padRight(20);
+      print('  $name (${_timeAgo(city.fetchedAt)})');
+    }
+  }
+
   static String _source(bool fromCache, DateTime? fetchedAt) {
     if (!fromCache) return 'agora (ao vivo)';
     return 'há ${_timeAgo(fetchedAt!)} (cache)';
@@ -24,6 +34,7 @@ class Display {
     final diff = DateTime.now().difference(fetchedAt);
     if (diff.inMinutes < 1) return 'agora';
     if (diff.inMinutes < 60) return '${diff.inMinutes}min';
-    return '${diff.inHours}h';
+    if (diff.inHours < 24) return '${diff.inHours}h';
+    return '${diff.inDays} dia(s)';
   }
 }

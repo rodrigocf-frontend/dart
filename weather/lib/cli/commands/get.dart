@@ -21,7 +21,7 @@ class GetCommand extends Command {
     }
 
     final String cityName = argResults!.rest.first;
-    final bool forceRefresh = isRefreshing();
+    final bool forceRefresh = _isRefreshing();
 
     final currentData = await _repository.getCurrentWeather(
       cityName,
@@ -36,7 +36,7 @@ class GetCommand extends Command {
     );
   }
 
-  bool isRefreshing() {
+  bool _isRefreshing() {
     return argResults!.flag("refresh");
   }
 }
