@@ -5,7 +5,9 @@ Future<void> main(List<String> arguments) async {
   // var url = Uri.https('api.open-meteo.com', '/v1/forecast', {
   //   "latitude": "-7.2306",
   //   "longitude": "-35.8811",
-  //   "current": "temperature_2m",
+  //   "current": "temperature_2m, relative_humidity_2m,wind_speed_10m",
+  //   "wind_speed_unit":"kmh",
+  //   "timezone":"America/Fortaleza"
   // });
   // var response = await http.get(url);
 

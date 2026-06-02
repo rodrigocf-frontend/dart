@@ -1,14 +1,15 @@
-import 'dart:async';
-
 import 'package:args/command_runner.dart';
+import 'package:weather/cli/display/display.dart';
+import 'package:weather/repositories/weather_repository.dart';
 
 class GetCommand extends Command {
   @override
-  String name = "get";
+  final String name = "get";
   @override
-  String description = "Find out the current climate of a city.";
+  final String description = "Find out the current climate of a city.";
+  final WeatherRepository _repository;
 
-  GetCommand() {
+  GetCommand({required this._repository}) {
     argParser.addFlag("refresh", help: "Force update (bypass cache)");
   }
 
@@ -18,11 +19,21 @@ class GetCommand extends Command {
       print("invalid command");
       return;
     }
-    if (isRefreshing()) {
-      print("OK! force refreshing cache");
-    } else {
-      print("Consult remote/locale");
-    }
+
+    final String cityName = argResults!.rest.first;
+    final bool forceRefresh = isRefreshing();
+
+    final currentData = await _repository.getCurrentWeather(
+      cityName,
+      forceRefresh,
+    );
+
+    Display.logWeather(
+      currentData.location,
+      currentData.weather,
+      fromCache: currentData.fromCache,
+      fetchedAt: currentData.fetchedAt,
+    );
   }
 
   bool isRefreshing() {
