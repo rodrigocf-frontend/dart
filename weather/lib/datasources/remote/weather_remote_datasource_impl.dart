@@ -8,18 +8,29 @@ class WeatherRemoteDatasourceImpl implements WeatherRemoteDatasource {
   WeatherRemoteDatasourceImpl();
 
   @override
-  Future<CityLocation> getLocation(Uri url) async {
-    var locationResponse = await http.get(url);
+  Future<CityLocation> getLocation(String cityName) async {
+    final Uri url = Uri.https('geocoding-api.open-meteo.com', '/v1/search', {
+      "name": cityName,
+      "count": "1",
+    });
 
-    final Map<String, dynamic> locationFromJson = jsonDecode(
-      locationResponse.body,
-    );
+    var response = await http.get(url);
+
+    final Map<String, dynamic> locationFromJson = jsonDecode(response.body);
 
     return CityLocation.fromJSON(locationFromJson['results'].first);
   }
 
   @override
-  Future<CityWeather> getWeather(Uri url) async {
+  Future<CityWeather> getWeather(CityLocation location) async {
+    var url = Uri.https('api.open-meteo.com', '/v1/forecast', {
+      "latitude": location.latitude,
+      "longitude": location.longitude,
+      "current": "temperature_2m,windspeed_2m,relative_humidity_2m",
+      "wind_speed_unit": "kmh",
+      "timezone": location.timezone,
+    });
+
     var weatherResponse = await http.get(url);
     final Map<String, dynamic> weatherFromJson = jsonDecode(
       weatherResponse.body,
