@@ -1,5 +1,7 @@
 import 'package:args/command_runner.dart';
 import 'package:weather/cli/display/display.dart';
+import 'package:weather/core/result.dart';
+import 'package:weather/exceptions/weather.dart';
 import 'package:weather/repositories/weather_repository.dart';
 
 class ForecastCommand extends Command {
@@ -23,12 +25,25 @@ class ForecastCommand extends Command {
       return;
     }
 
-    final int days = int.parse(argResults!['days']);
     final String city = argResults!.rest.first;
+    final int days = int.parse(argResults!['days']);
     final bool forceRefresh = _isRefreshing();
-    final data = await _repository.getForecast(city, days, forceRefresh);
 
-    Display.logForecast(data.location, data.forecast);
+    final result = await _repository.getForecast(city, days, forceRefresh);
+
+    switch (result) {
+      case Success(:final value):
+        Display.logForecast(value.location, value.forecast);
+      case Failure(:final error):
+        switch (error) {
+          case CityNotFound(:final cityName):
+            print('Cidade "$cityName" não encontrada.');
+          case NetworkError(:final message):
+            print('Erro de rede: $message');
+          case UnexpectedError(:final message):
+            print('Erro inesperado: $message');
+        }
+    }
   }
 
   bool _hasDays() {

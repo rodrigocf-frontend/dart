@@ -1,5 +1,7 @@
 import 'package:args/command_runner.dart';
 import 'package:weather/cli/display/display.dart';
+import 'package:weather/core/result.dart';
+import 'package:weather/exceptions/weather.dart';
 import 'package:weather/repositories/weather_repository.dart';
 
 class GetCommand extends Command {
@@ -23,17 +25,26 @@ class GetCommand extends Command {
     final String cityName = argResults!.rest.first;
     final bool forceRefresh = _isRefreshing();
 
-    final currentData = await _repository.getCurrentWeather(
-      cityName,
-      forceRefresh,
-    );
+    final result = await _repository.getCurrentWeather(cityName, forceRefresh);
 
-    Display.logWeather(
-      currentData.location,
-      currentData.weather,
-      fromCache: currentData.fromCache,
-      fetchedAt: currentData.fetchedAt,
-    );
+    switch (result) {
+      case Success(:final value):
+        Display.logWeather(
+          value.location,
+          value.weather,
+          fromCache: value.fromCache,
+          fetchedAt: value.fetchedAt,
+        );
+      case Failure(:final error):
+        switch (error) {
+          case CityNotFound(:final cityName):
+            print('Cidade "$cityName" não encontrada.');
+          case NetworkError(:final message):
+            print('Erro de rede: $message');
+          case UnexpectedError(:final message):
+            print('Erro inesperado: $message');
+        }
+    }
   }
 
   bool _isRefreshing() {
