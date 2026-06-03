@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:weather/models/forecast.dart';
 import 'package:weather/models/location.dart';
 import 'package:weather/models/weather.dart';
 
@@ -24,4 +25,15 @@ abstract interface class WeatherLocalDatasource {
     DateTime lastCacheUpdated,
   );
   Future<int> deleteCache();
+  Future<
+    ({CityForecast forecast, CityLocation location, DateTime lastCacheUpdated})
+  >
+  loadForecastFile(String cityName);
+  String getForecastCachePath(String cityName);
+  Future<void> findAndUpdateForecastByLocation(
+    CityLocation location,
+    CityForecast forecast,
+    DateTime lastCacheUpdated,
+  );
+  Future<File> createForecastStore(String cityName);
 }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:weather/datasources/local/weather_local_datasource.dart';
+import 'package:weather/models/forecast.dart';
 import 'package:weather/models/location.dart';
 import 'package:weather/models/weather.dart';
 
@@ -15,6 +16,14 @@ class WeatherLocalDatasourceImpl implements WeatherLocalDatasource {
   @override
   Future<File> createStore(String path) async {
     final File file = configPathToFile(path);
+    file.createSync(recursive: true);
+    return file;
+  }
+
+  @override
+  Future<File> createForecastStore(String cityName) async {
+    final String path = getForecastCachePath(cityName);
+    File file = configPathToFile(path);
     file.createSync(recursive: true);
     return file;
   }
@@ -67,6 +76,31 @@ class WeatherLocalDatasourceImpl implements WeatherLocalDatasource {
       lastCacheUpdated: lastCacheUpdated,
       location: location,
       weather: weather,
+    );
+  }
+
+  @override
+  Future<
+    ({CityForecast forecast, CityLocation location, DateTime lastCacheUpdated})
+  >
+  loadForecastFile(String cityName) async {
+    final String path = getForecastCachePath(cityName);
+    File file = configPathToFile(path);
+
+    final String fileData = await file.readAsString();
+    final fileDataJSON = jsonDecode(fileData);
+
+    final DateTime lastCacheUpdated = DateTime.parse(
+      fileDataJSON['cache_updated'] as String,
+    );
+
+    final CityForecast forecast = CityForecast.fromJSON(fileDataJSON);
+    final CityLocation location = CityLocation.fromJSON(fileDataJSON);
+
+    return (
+      forecast: forecast,
+      location: location,
+      lastCacheUpdated: lastCacheUpdated,
     );
   }
 
@@ -138,6 +172,24 @@ class WeatherLocalDatasourceImpl implements WeatherLocalDatasource {
   }
 
   @override
+  Future<void> findAndUpdateForecastByLocation(
+    CityLocation location,
+    CityForecast forecast,
+    DateTime lastCacheUpdated,
+  ) async {
+    final String path = getForecastCachePath(location.name);
+    File file = configPathToFile(path);
+
+    final fileData = jsonEncode({
+      ...location.toJSON(),
+      ...forecast.toJSON(),
+      "cache_updated": lastCacheUpdated.toIso8601String(),
+    });
+
+    await file.writeAsString(fileData);
+  }
+
+  @override
   Future<int> deleteCache() async {
     try {
       String path = "store";
@@ -166,6 +218,11 @@ class WeatherLocalDatasourceImpl implements WeatherLocalDatasource {
   @override
   String getCurrentCachePath(String cityName) {
     return 'store/${cityName.toLowerCase().replaceAll(RegExp(" "), "_")}_current.json';
+  }
+
+  @override
+  String getForecastCachePath(String cityName) {
+    return 'store/${cityName.toLowerCase().replaceAll(RegExp(" "), "_")}_forecast.json';
   }
 
   @override
