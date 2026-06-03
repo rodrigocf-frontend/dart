@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:path/path.dart' as p;
 import 'package:weather/datasources/local/weather_local_datasource.dart';
 import 'package:weather/models/location.dart';
 import 'package:weather/models/weather.dart';
@@ -76,8 +76,8 @@ class WeatherLocalDatasourceImpl implements WeatherLocalDatasource {
     try {
       final String path = getHistoryCachePath();
       File file = configPathToFile(path);
-      String fileData = await file.readAsString();
-      List<dynamic> fileDataJSON = jsonDecode(fileData);
+      final String fileData = await file.readAsString();
+      final List<dynamic> fileDataJSON = jsonDecode(fileData);
       final fileDataCast = fileDataJSON
           .map(
             (item) => (
@@ -131,6 +131,32 @@ class WeatherLocalDatasourceImpl implements WeatherLocalDatasource {
         },
       ]);
       await file.writeAsString(fileData);
+    } catch (e) {
+      print("Unexpected Error");
+      rethrow;
+    }
+  }
+
+  @override
+  Future<int> deleteCache() async {
+    try {
+      String path = "store";
+      final directory = Directory(path);
+      final list = await directory
+          .list(recursive: true)
+          .where((item) => !item.path.endsWith("history.json"))
+          .map(
+            (file) => p
+                .basenameWithoutExtension(file.path)
+                .replaceAll(RegExp(r'_(current|forecast)$'), ''),
+          )
+          .toSet();
+
+      final count = list.length;
+      await directory.delete(recursive: true);
+      return count;
+    } on PathNotFoundException {
+      return 0;
     } catch (e) {
       print("Unexpected Error");
       rethrow;

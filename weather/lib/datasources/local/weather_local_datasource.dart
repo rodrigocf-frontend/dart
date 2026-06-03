@@ -23,4 +23,5 @@ abstract interface class WeatherLocalDatasource {
     CityLocation location,
     DateTime lastCacheUpdated,
   );
+  Future<int> deleteCache();
 }
