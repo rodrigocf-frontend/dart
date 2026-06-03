@@ -21,11 +21,20 @@ class WeatherRepositoryImpl implements WeatherRepository {
   WeatherRepositoryImpl.withDatasources(
     WeatherRemoteDatasource remote,
     WeatherLocalDatasource local,
-  )   : _remoteDatasource = remote,
-        _localDatasource = local;
+  ) : _remoteDatasource = remote,
+      _localDatasource = local;
 
   @override
-  Future<Result<({CityLocation location, CityWeather weather, DateTime fetchedAt, bool fromCache})>>
+  Future<
+    Result<
+      ({
+        CityLocation location,
+        CityWeather weather,
+        DateTime fetchedAt,
+        bool fromCache,
+      })
+    >
+  >
   getCurrentWeather(String cityName, bool forceRefresh) async {
     try {
       final fileData = await _localDatasource.loadCurrentWeatherFile(cityName);
@@ -33,7 +42,8 @@ class WeatherRepositoryImpl implements WeatherRepository {
       final lastCacheUpdated = fileData.lastCacheUpdated;
       final weather = fileData.weather;
 
-      if (DateTime.now().difference(lastCacheUpdated).inHours >= 1 || forceRefresh) {
+      if (DateTime.now().difference(lastCacheUpdated).inHours >= 1 ||
+          forceRefresh) {
         final saveResult = await _save(location);
         if (saveResult case Failure(:final error)) return Failure(error);
         final saved = (saveResult as Success).value;
@@ -73,7 +83,9 @@ class WeatherRepositoryImpl implements WeatherRepository {
   }
 
   @override
-  Future<Result<({CityForecast forecast, CityLocation location, DateTime fetchedAt})>>
+  Future<
+    Result<({CityForecast forecast, CityLocation location, DateTime fetchedAt})>
+  >
   getForecast(String cityName, int days, bool forceRefresh) async {
     try {
       final fileData = await _localDatasource.loadForecastFile(cityName);
@@ -122,24 +134,43 @@ class WeatherRepositoryImpl implements WeatherRepository {
     final weather = (weatherResult as Success<CityWeather>).value;
 
     final lastCacheUpdated = DateTime.now();
-    await _localDatasource.findAndUpdateCurrentFile(location, weather, lastCacheUpdated);
-    await _localDatasource.findAndUpdateHistoryByLocation(location, lastCacheUpdated);
+    await _localDatasource.findAndUpdateCurrentFile(
+      location,
+      weather,
+      lastCacheUpdated,
+    );
+    await _localDatasource.findAndUpdateHistoryByLocation(
+      location,
+      lastCacheUpdated,
+    );
 
     return Success((lastCacheUpdated: lastCacheUpdated, weather: weather));
   }
 
-  Future<Result<({CityForecast forecast, CityLocation location, DateTime lastCacheUpdated})>>
+  Future<
+    Result<
+      ({
+        CityForecast forecast,
+        CityLocation location,
+        DateTime lastCacheUpdated,
+      })
+    >
+  >
   _saveForecast(String cityName, int days) async {
-    final forecastResult = await _remoteDatasource.getForecast(cityName, days);
-    if (forecastResult case Failure(:final error)) return Failure(error);
-    final forecast = (forecastResult as Success<CityForecast>).value;
-
     final locationResult = await _remoteDatasource.getLocation(cityName);
     if (locationResult case Failure(:final error)) return Failure(error);
     final location = (locationResult as Success<CityLocation>).value;
 
+    final forecastResult = await _remoteDatasource.getForecast(location, days);
+    if (forecastResult case Failure(:final error)) return Failure(error);
+    final forecast = (forecastResult as Success<CityForecast>).value;
+
     final lastCacheUpdated = DateTime.now();
-    await _localDatasource.findAndUpdateForecastByLocation(location, forecast, lastCacheUpdated);
+    await _localDatasource.findAndUpdateForecastByLocation(
+      location,
+      forecast,
+      lastCacheUpdated,
+    );
 
     return Success((
       forecast: forecast,

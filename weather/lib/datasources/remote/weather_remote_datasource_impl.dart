@@ -58,11 +58,10 @@ class WeatherRemoteDatasourceImpl implements WeatherRemoteDatasource {
   }
 
   @override
-  Future<Result<CityForecast>> getForecast(String cityName, int days) async {
-    final locationResult = await getLocation(cityName);
-    if (locationResult case Failure(:final error)) return Failure(error);
-    final location = (locationResult as Success<CityLocation>).value;
-
+  Future<Result<CityForecast>> getForecast(
+    CityLocation location,
+    int days,
+  ) async {
     try {
       final url = Uri.https('api.open-meteo.com', '/v1/forecast', {
         "latitude": location.latitude,
