@@ -13,4 +13,5 @@ abstract interface class WeatherRepository {
   getCurrentWeather(String cityName, bool forceRefresh);
 
   Future<List<({DateTime fetchedAt, int id, String name})>> getHistory();
+  Future<int> clearCache();
 }

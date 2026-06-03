@@ -31,7 +31,7 @@ class WeatherRepositoryImpl implements WeatherRepository {
       final lastCacheUpdated = fileData.lastCacheUpdated;
       final weather = fileData.weather;
 
-      if (DateTime.now().difference(lastCacheUpdated).inHours > 1 ||
+      if (DateTime.now().difference(lastCacheUpdated).inHours >= 1 ||
           forceRefresh) {
         final savedUpdate = await _save(location);
         return (
@@ -87,5 +87,10 @@ class WeatherRepositoryImpl implements WeatherRepository {
     );
 
     return (lastCacheUpdated: lastCacheUpdated, weather: weather);
+  }
+
+  @override
+  Future<int> clearCache() async {
+    return await _localDatasource.deleteCache();
   }
 }
