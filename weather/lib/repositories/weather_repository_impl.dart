@@ -18,6 +18,12 @@ class WeatherRepositoryImpl implements WeatherRepository {
     : _remoteDatasource = WeatherRemoteDatasourceImpl(),
       _localDatasource = WeatherLocalDatasourceImpl();
 
+  WeatherRepositoryImpl.withDatasources(
+    WeatherRemoteDatasource remote,
+    WeatherLocalDatasource local,
+  )   : _remoteDatasource = remote,
+        _localDatasource = local;
+
   @override
   Future<Result<({CityLocation location, CityWeather weather, DateTime fetchedAt, bool fromCache})>>
   getCurrentWeather(String cityName, bool forceRefresh) async {
