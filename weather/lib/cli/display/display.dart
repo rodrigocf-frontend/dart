@@ -1,3 +1,4 @@
+import 'package:weather/models/forecast.dart';
 import 'package:weather/models/location.dart';
 import 'package:weather/models/weather.dart';
 
@@ -36,6 +37,16 @@ class Display {
     if (diff.inMinutes < 60) return '${diff.inMinutes}min';
     if (diff.inHours < 24) return '${diff.inHours}h';
     return '${diff.inDays} dia(s)';
+  }
+
+  static void logForecast(CityLocation location, CityForecast forecast) {
+    print('${location.name}, ${location.countryCode} — Próximos ${forecast.days.length} dias\n');
+    for (final day in forecast.days) {
+      final date = '${day.date.day.toString().padLeft(2, '0')}/${day.date.month.toString().padLeft(2, '0')}';
+      final max = day.maxTemperature.toStringAsFixed(0).padLeft(3);
+      final min = day.minTemperature.toStringAsFixed(0).padLeft(3);
+      print('  $date  Máx $max${forecast.temperatureUnit}  Mín $min${forecast.temperatureUnit}');
+    }
   }
 
   static void logClear(int count) {

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:weather/cli/display/display.dart';
 import 'package:weather/repositories/weather_repository.dart';
