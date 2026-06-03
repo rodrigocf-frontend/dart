@@ -96,15 +96,15 @@ class MockWeatherRemoteDatasource extends _i1.Mock
 
   @override
   _i7.Future<_i8.Result<_i5.CityForecast>> getForecast(
-    String? cityName,
+    _i3.CityLocation? location,
     int? days,
   ) =>
       (super.noSuchMethod(
-            Invocation.method(#getForecast, [cityName, days]),
+            Invocation.method(#getForecast, [location, days]),
             returnValue: _i7.Future<_i8.Result<_i5.CityForecast>>.value(
               _i9.dummyValue<_i8.Result<_i5.CityForecast>>(
                 this,
-                Invocation.method(#getForecast, [cityName, days]),
+                Invocation.method(#getForecast, [location, days]),
               ),
             ),
           )
