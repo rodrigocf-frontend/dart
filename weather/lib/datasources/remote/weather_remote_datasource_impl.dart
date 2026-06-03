@@ -1,6 +1,7 @@
 import 'dart:convert';
 import "package:http/http.dart" as http;
 import 'package:weather/datasources/remote/weather_remote_datasource.dart';
+import 'package:weather/models/forecast.dart';
 import 'package:weather/models/location.dart';
 import 'package:weather/models/weather.dart';
 
@@ -17,6 +18,8 @@ class WeatherRemoteDatasourceImpl implements WeatherRemoteDatasource {
     var response = await http.get(url);
 
     final Map<String, dynamic> locationFromJson = jsonDecode(response.body);
+
+    print(response.body);
 
     return CityLocation.fromJSON(locationFromJson['results'].first);
   }
@@ -37,5 +40,24 @@ class WeatherRemoteDatasourceImpl implements WeatherRemoteDatasource {
     );
 
     return CityWeather.fromJSON(weatherFromJson);
+  }
+
+  @override
+  Future<CityForecast> getForecast(String cityName, int days) async {
+    final location = await getLocation(cityName);
+
+    final url = Uri.https('api.open-meteo.com', '/v1/forecast', {
+      "latitude": location.latitude,
+      "longitude": location.longitude,
+      "daily": "temperature_2m_max,temperature_2m_min",
+      "forecast_days": days.toString(),
+      "timezone": location.timezone,
+    });
+
+    var response = await http.get(url);
+
+    final reponseToJson = jsonDecode(response.body);
+
+    return CityForecast.fromJSON(reponseToJson);
   }
 }
