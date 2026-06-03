@@ -17,6 +17,6 @@ class WeatherCli extends CommandRunner {
     addCommand(GetCommand(repository: repository));
     addCommand(ForecastCommand());
     addCommand(HistoryCommand(repository: repository));
-    addCommand(ClearCommand());
+    addCommand(ClearCommand(repository: repository));
   }
 }

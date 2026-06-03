@@ -37,4 +37,12 @@ class Display {
     if (diff.inHours < 24) return '${diff.inHours}h';
     return '${diff.inDays} dia(s)';
   }
+
+  static void logClear(int count) {
+    if (count == 0) {
+      print('Nenhum cache encontrado.');
+    } else {
+      print('Cache limpo. $count cidade(s) removida(s).');
+    }
+  }
 }

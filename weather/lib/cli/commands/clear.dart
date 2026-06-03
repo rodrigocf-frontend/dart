@@ -1,12 +1,17 @@
 import 'dart:async';
-
 import 'package:args/command_runner.dart';
+import 'package:weather/cli/display/display.dart';
+import 'package:weather/repositories/weather_repository.dart';
 
 class ClearCommand extends Command {
   @override
-  String name = "clear";
+  final String name = "clear";
   @override
-  String description = "Clear cache";
+  final String description = "Clear cache";
+
+  final WeatherRepository _repository;
+
+  ClearCommand({required this._repository});
 
   @override
   Future<void> run() async {
@@ -14,6 +19,8 @@ class ClearCommand extends Command {
       print("invalid command");
       return;
     }
-    print("clear storage");
+    final int count = await _repository.clearCache();
+
+    Display.logClear(count);
   }
 }
