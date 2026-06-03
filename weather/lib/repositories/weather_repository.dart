@@ -1,3 +1,4 @@
+import 'package:weather/models/forecast.dart';
 import 'package:weather/models/location.dart';
 import 'package:weather/models/weather.dart';
 
@@ -14,4 +15,6 @@ abstract interface class WeatherRepository {
 
   Future<List<({DateTime fetchedAt, int id, String name})>> getHistory();
   Future<int> clearCache();
+  Future<({CityForecast forecast, CityLocation location, DateTime fetchedAt})>
+  getForecast(String cityName, int days, bool forceRefresh);
 }

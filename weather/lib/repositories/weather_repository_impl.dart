@@ -3,6 +3,7 @@ import 'package:weather/datasources/local/weather_local_datasource.dart';
 import 'package:weather/datasources/local/weather_local_datasource_impl.dart';
 import 'package:weather/datasources/remote/weather_remote_datasource.dart';
 import 'package:weather/datasources/remote/weather_remote_datasource_impl.dart';
+import 'package:weather/models/forecast.dart';
 import 'package:weather/models/location.dart';
 import 'package:weather/models/weather.dart';
 import 'package:weather/repositories/weather_repository.dart';
@@ -68,6 +69,67 @@ class WeatherRepositoryImpl implements WeatherRepository {
   @override
   Future<List<({DateTime fetchedAt, int id, String name})>> getHistory() async {
     return _localDatasource.loadHistoryFile();
+  }
+
+  @override
+  Future<({CityForecast forecast, CityLocation location, DateTime fetchedAt})>
+  getForecast(String cityName, int days, bool forceRefresh) async {
+    try {
+      final fileData = await _localDatasource.loadForecastFile(cityName);
+      final forecast = fileData.forecast;
+      final location = fileData.location;
+      final lastCacheUpdated = fileData.lastCacheUpdated;
+
+      if (DateTime.now().difference(lastCacheUpdated).inHours >= 6 ||
+          forecast.days.length != days ||
+          forceRefresh) {
+        final savedUpdate = await _saveForecast(cityName, days);
+        return (
+          forecast: savedUpdate.forecast,
+          fetchedAt: savedUpdate.lastCacheUpdated,
+          location: savedUpdate.location,
+        );
+      } else {
+        return (
+          fetchedAt: lastCacheUpdated,
+          forecast: forecast,
+          location: location,
+        );
+      }
+    } on PathNotFoundException {
+      await _localDatasource.createForecastStore(cityName);
+      final savedNew = await _saveForecast(cityName, days);
+      return (
+        forecast: savedNew.forecast,
+        fetchedAt: savedNew.lastCacheUpdated,
+        location: savedNew.location,
+      );
+    } catch (e) {
+      print("Unexpected Error");
+      rethrow;
+    }
+  }
+
+  Future<
+    ({CityForecast forecast, CityLocation location, DateTime lastCacheUpdated})
+  >
+  _saveForecast(String cityName, int days) async {
+    final forecast = await _remoteDatasource.getForecast(cityName, days);
+    final location = await _remoteDatasource.getLocation(cityName);
+
+    final lastCacheUpdated = DateTime.now();
+
+    await _localDatasource.findAndUpdateForecastByLocation(
+      location,
+      forecast,
+      lastCacheUpdated,
+    );
+
+    return (
+      forecast: forecast,
+      location: location,
+      lastCacheUpdated: lastCacheUpdated,
+    );
   }
 
   Future<({CityWeather weather, DateTime lastCacheUpdated})> _save(
